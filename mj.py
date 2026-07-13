@@ -104,6 +104,20 @@ class Bridge(QObject):
         self.micChanged.emit(state)
     
     @pyqtSlot(str)
+    def sendChatMessage(self, msg):
+        print(f"UI Chat message: {msg}")
+        try:
+            import tools
+            import asyncio
+            if hasattr(tools, 'assistant_instance') and tools.assistant_instance and hasattr(tools, 'agent_loop'):
+                asyncio.run_coroutine_threadsafe(
+                    tools.assistant_instance.handle_ui_chat(msg),
+                    tools.agent_loop
+                )
+        except Exception as e:
+            print(f"Chat error: {e}")
+
+    @pyqtSlot(str)
     def setMode(self, mode):
         print(f"Mode: {mode}")
     

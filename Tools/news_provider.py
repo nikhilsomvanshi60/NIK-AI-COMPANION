@@ -73,9 +73,16 @@ async def get_top_news(country: str = "india") -> str:
         # Format news
         news_output = f"📰 **Latest {country.upper()} News:**\n\n"
         
-        for i, entry in enumerate(feed.entries[:5], 1):  # Top 5 news
+        import random
+        
+        # Pick up to 5 random news entries
+        entries = feed.entries
+        if len(entries) > 5:
+            entries = random.sample(entries, 5)
+            
+        for i, entry in enumerate(entries, 1):
             title = entry.get('title', 'No title')
-            description = entry.get('description', 'No description')
+            description = entry.get('description', 'short description')
             link = entry.get('link', 'No link')
             
             print(f"📖 Processing news {i}: {title[:50]}...")

@@ -692,6 +692,36 @@ class UltimateAdvancedNIK(Agent):
         except IOError as e:
             print(f"⚠️ Failed to log conversation: {e}")
 
+    async def handle_ui_chat(self, msg: str):
+        print(f"💻 UI Chat received: {msg}")
+        
+        try:
+            memory_file = "memory.json"
+            data = []
+            if os.path.exists(memory_file):
+                with open(memory_file, "r", encoding="utf-8") as f:
+                    try:
+                        data = json.load(f)
+                    except json.JSONDecodeError:
+                        pass
+            
+            entry = {
+                "role": "user",
+                "content": msg,
+                "timestamp": datetime.now().isoformat()
+            }
+            data.append(entry)
+            with open(memory_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"Failed to update memory.json: {e}")
+
+        if self._current_session:
+            await self._log_conversation("User (UI)", msg)
+            await self._current_session.generate_reply(instructions=f"The user just typed this text message in the UI: '{msg}'. Respond to it naturally and verbally.")
+        else:
+            print("⚠️ Cannot process UI chat, session not active.")
+
     async def _run_autonomous_loop(self):
         """Background loop executing NIK's autonomous checks and proactive chatting."""
         print("🧠 NIK Autonomous brain monitoring started")
@@ -731,6 +761,10 @@ async def entrypoint(ctx: agents.JobContext):
     print("🚀 Starting NIK...")
 
     agent = UltimateAdvancedNIK()  # tools.assistant_instance set here
+    import tools
+    import asyncio
+    tools.agent_loop = asyncio.get_running_loop()
+    
     session = AgentSession()
 
     await session.start(
